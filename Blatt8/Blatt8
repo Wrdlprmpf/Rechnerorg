@@ -77,7 +77,7 @@ erreicht?
 Stalls sollen sinnvoll genutzt werden.
 
 
-8.2
+8.2 Loop Unrolling, Superskalare Prozessoren
 	Gegeben sei das unten stehende Code Fragment. Ordnen Sie den Code der zweimal
 	abgerollten Schleife so an, dass er optimal auf einem superskalaren Prozessor mit „Delayed
 	Branching“ entsprechend VO-Folie 3-157 ausgeführt werden kann. Es gelten die Latenzen
@@ -114,12 +114,43 @@ Stalls sollen sinnvoll genutzt werden.
 												add.d $f2, $f10, $f12	
 												add.d $A2, $A10, $A12
 			stall
-			stall								
+			stall
 												mul.d $f4, $f2, $f10	
 												mul.d $A4, $A2, $A10	
-			stall		
+			stall
 			s.d $f4, -16($t2)
 			bne $t0, $t3, loop
 			s.d $A4, -8($t2)
 
 20/2 = 10 Takte
+
+8.4 Dynamisches Pipeline-Scheduling
+	Stellen Sie die Ausführung des (nicht abgerollten und nicht umgeordneten) Codes aus
+	Aufgabe 8.1 auf dem superskalaren Beispielprozessor mit „Dynamic Scheduling“ und „Branch
+	Prediction“ wie auf VO-Folie 3-159 dar. Wie viele Takte werden pro Ergebniselement
+	benötigt?
+	Eigenschaften des Beispielprozessors:
+		 Es gibt zwei „Issue“-Pipelines, sodass in jedem Takt mit der Verarbeitung von zwei
+		Befehlen begonnen werden kann: ein FP-Befehl und ein anderer Befehlstyp (INT, Branch,
+		Load/Store).
+		
+		 Es sind genügend Reservierungsstationen und Funktionseinheiten vorhanden, um alle
+		Befehle der Schleife aufzunehmen.
+		
+		 Zwischen abhängigen Befehlen in derselben Pipeline findet „Forwarding“ statt, sodass die
+		Fertigstellung (Commit) eines Befehls und der Ausführungsbeginn eines abhängigen
+		Befehls im selben Takt erfolgen können.
+		
+		 Die „Commit“-Reihenfolge muss nicht mit der „Issue“-Reihenfolge übereinstimmen („outof-order completion“).
+		
+		 Die Dauer der „Execute“-Phase für verschiedene Befehlsgruppen sei durch folgende
+		Tabelle gegeben. Die Dauer von „Branch“- und „Store“-Befehlen ist hier nicht relevant,
+		weil sie jedenfalls kleiner als die Ausführungsdauer einer Iteration des gegebenen Codes
+		ist und die Sprungvorhersage für die gegebene Schleife fast immer richtig ist.
+		
+		
+		Siehe Excel Datei!
+		
+		
+		
+		
