@@ -1,0 +1,125 @@
+8.1 Loop Unrolling
+	Gegeben sei folgendes MIPS-Assemblercodefragment, das auf einem Pipelined-Prozessor
+	ohne „Branch Prediction“, aber mit „Delayed Branching“ (1 Takt Branch Delay) ausgeführt
+	wird. Die Latenzen zwischen abhängigen Befehlen sind in der Tabelle am Ende des
+	Übungsblattes angegeben.
+	
+	# initialize c as $f0, d as $f2 – not shown
+	loop: l.d $f4, 0($t0) 		# load x[i]
+	sub.d $f6, $f4, $f0 		# x[i] - c
+	l.d $f8, 0($t1) 			# load y[i]
+	mul.d $f10, $f6, $f8 		# (x[i] – c) * y[i]
+	add.d $f12, $f10, $f2 		# (x[i] - c) * y[i] + d
+	s.d $f12, 0($t2) 			# store result element z[i]
+	addi $t2, $t2, -8
+	addi $t1, $t1, -8
+	addi $t0, $t0, -8
+	bne $t0, $t4, loop
+	nop
+	
+(a) Identifizieren sie alle Daten- und Kontrollabhängigkeiten, die Leerzyklen (Stalls)
+verursachen. Wie viele Takte werden für ein Ergebniselement (durch s.d gespeicherter
+Wert) benötigt?
+
+Siehe "Stalls" Bild
+
+11 Befehle + 9 Stalls = 20 Takte
+
+(b) Optimieren Sie den Code durch Umordnen von Befehlen so, dass er auf dem gegebenen
+Prozessor möglichst schnell ausgeführt wird. Wie viele Takte werden für die Verarbeitung
+eines Ergebniselements (z[i]) durchschnittlich benötigt?
+
+loop:	l.d $f4, 0($t0)	
+		l.d $f8, 0($t1)	
+		sub.d $f6, $f4, $f0	
+		addi $t2, $t2, -8
+		addi $t1, $t1, -8
+		addi $t0, $t0, -8
+		mul.d $f10, $f6, $f8
+		nop
+		nop
+		nop
+		add.d $f12, $f10, $f2
+		nop
+		bne $t0, $t4, loop
+		s.d $f12, 0($t2)
+	
+	
+	14 Takte
+
+(c) Rollen Sie die Schleife zweimal ab (sodass zwei Kopien des Code-Fragments in einer
+Schleifeniteration bearbeitet werden), und ordnen Sie den Code so um, dass er auf dem
+gegebenen Prozessor möglichst schnell ausgeführt wird. Wie viele Takte werden nun pro
+Ergebniselement benötigt?
+
+loop:	l.d $f4, 0($t0)	
+		l.d $A4, -8($t0)
+		sub.d $f6, $f4, $f0	
+		sub.d $A6, $A4, $f0
+		l.d $f8, 0($t1)
+		l.d $A8, -8($t1)
+		mul.d $f10, $f6, $f8	
+		mul.d $A10, $A6, $A8
+		addi $t1, $t1, -16
+		addi $t0, $t0, -16
+		add.d $f12, $f10, $f2	
+		add.d $A12, $A10, $A2
+		addi $t2, $t2, -16
+		s.d $f12, 16($t2)		
+		bne $t0, $t4, loop
+		s.d $A12, 8($t2)
+
+16 Takte, 8 Pro Ergebniselement
+
+(d) Wodurch wird die Leistungssteigerung beim Abrollen von Schleifen im Allgemeinen
+erreicht?
+
+Stalls sollen sinnvoll genutzt werden.
+
+
+8.2
+	Gegeben sei das unten stehende Code Fragment. Ordnen Sie den Code der zweimal
+	abgerollten Schleife so an, dass er optimal auf einem superskalaren Prozessor mit „Delayed
+	Branching“ entsprechend VO-Folie 3-157 ausgeführt werden kann. Es gelten die Latenzen
+	zwischen abhängigen Befehlen wie in der am Ende des Übungsblattes stehenden Tabelle
+	angegeben. Wie viele Takte werden pro Ergebniselement benötigt?
+	
+	# $f0 (v) and $f8 (u) contain constants
+	loop: 	l.d $f2, 0($t0) 			# load x[i]
+			add.d $f2, $f2, $f8 		# x[i] + u
+			l.d $f12, 0($t1) 			# load y[j]
+			add.d $f12, $f12, $f0 		# y[j] + v
+			div.d $f10, $f2, $f12 		# x[i] / y[j]
+			add.d $f2, $f10, $f12 		# y[j] + x[i] / y[j]
+			mul.d $f4, $f2, $f10 		# (y[j] + x[i]/y[j])*((x[i] + v)/ y[j])
+			s.d $f4, 0($t2) 			# store z[i]
+			addi $t0, $t0, 8
+			addi $t1, $t1, 8
+			addi $t2, $t2, 8
+			bne $t0, $t3, loop
+			nop
+
+
+
+	loop:	l.d $f2, 0($t0)						add.d $f2, $f2, $f8		
+			l.d $A2, -8($t0)					add.d $A2, $A2, $A8				
+			l.d $f12, 0($t1)					add.d $f12, $f12, $f0	
+			l.d $A12, -8($t1)					add.d $A12, $A12, $A0
+			addi $t0, $t0, 16					
+			addi $t1, $t1, 16					
+			addi $t2, $t2, 16					div.d $f10, $f2, $f12
+												div.d $A10, $A2, $A12																			
+			stall
+			stall
+												add.d $f2, $f10, $f12	
+												add.d $A2, $A10, $A12
+			stall
+			stall								
+												mul.d $f4, $f2, $f10	
+												mul.d $A4, $A2, $A10	
+			stall		
+			s.d $f4, -16($t2)
+			bne $t0, $t3, loop
+			s.d $A4, -8($t2)
+
+20/2 = 10 Takte
