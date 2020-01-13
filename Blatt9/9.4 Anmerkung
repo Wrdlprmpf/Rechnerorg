@@ -1,0 +1,13 @@
+9.4)
+
+Adresse              = die Speicheradresse in Byte 
+Blockgröße           = 32 Bytes
+Anzahl d Blockzeilen = 64KiB -> 1 KiB = 1024 Byte / Bytes Per Cache Block = 1024 * 64 /32 = 2048
+BS (Byte Select)     = Log2 (Blockgröße) (log2 (32) = 5)
+Cache Index (CI)     = Log2 (Blockzeile) (log2 (2048) = 11)
+Blockzeile           = Cache Size bzw Bytes pro Cache Block
+Tag                  = Datentyp - BS - CI | 32 - 5 - 11 = 16
+
+Compulsory Miss: Cache war an gegebener Stelle leer, Datenwort muss geladen werden
+
+Conflict
