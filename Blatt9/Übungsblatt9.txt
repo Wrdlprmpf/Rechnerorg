@@ -21,3 +21,71 @@ durchschnittlicher CPI Wert = 5
 1+0.3*(7x+(1-x)*0.85*42+(1-x)*0.15*128)=5
 
 x = 0.868 = 86.8%
+
+9.2)
+
+A2 Cache (2-fach satz-assoziativen), dh 2 Sätze je Set
+		Cache Größe: 4KiB = 4096byte
+		Blockgröße: 32byte
+		Größe eines int: 32 bit = 4 byte
+		Sets 4096 / 32 / 2 = 64
+
+		a) Bestimmen Sie die Hitrate des Caches für die Ausführung des gesamten Fragments, und
+		beurteilen Sie die erzielte Performance.
+
+					1.Schleife:
+					Beim Zugriff auf A[0] werden die Elemente A[0] bis A[7] in den Satz 0 von Set 0 geladen.
+					Beim Zugriff auf B[0] werden die Elemente B[0] bis B[7] in den Satz 1 von Set 0 geladen.
+
+					Beim Zugriff auf A[0] und B[0] wiederholt sich für Set 1.
+					Insgesamt wiederholt sich das Muster "2xMiss, 14xHit"also 256 mal (insgesamt 2048*2 Zugriffe dividiert durch 16 je Muster)
+					Hits: 14 * 256 = 2584
+					Misses: 2 * 256 = 512
+
+					Der Cache wird genau 4 mal befüllt
+				2.Schleife: 
+					Solange die Elemente von A und B noch im Cache liegen, dh 64 mal wiederholt sich das Muster 2 x Hit und 22 x miss.
+					Danach gibt es keinen Hit mehr
+
+					Hits: 2*64 = 128
+					Miss: 22 * 64 + (24 * 192) = 6016
+
+					Beide Schleifen zusammen haben 3712 Hits und 6528 Miss.
+					Ergibt eine Hitrate von 36%
+
+		b) Im Moodle-Kurs finden Sie ein entsprechendes MIPS-Assembler-Programm des obigen
+		Fragmentes. Verwenden Sie den MARS Data Cache Simulator, um Ihr Resultat aus a) zu
+		verifizieren.
+
+		siehe Bild 1.
+
+		c) Kann ein Compiler mit Hilfe von Array-Padding eine höhere Hitrate ermöglichen? Wenn ja,
+		wie hoch wäre näherungsweise die verbesserte Hitrate für das gegebene Fragment?
+
+				???
+
+		d) Wie würde sich die Hitrate des Caches (ohne Array-Padding) verändern, wenn der
+		Datencache 4-fach satz-assoziativ organisiert wäre? Bestimmen Sie die Hitrate
+		näherungsweise.
+
+				Sets 4096 / 32 / 4 = 32
+				
+				1.Schleife
+					siehe oben nur Ablage im Cache ändert sich
+				2.Schleife
+					32 mal 23x Hit und 1x Miss
+					dann
+					224 mal 21x Hit und 3 Miss
+					
+					Hits: 23 * 32 + 21 * 224 = 5440
+					Misses: 1 * 32 + 3 * 224 = 704
+
+				Gesamt:
+				Hits: 9024
+				Misses: 1216
+				Hitrate: 88%
+				siehe Bild 2
+
+		e) Verwenden Sie den MARS Data Cache Simulator, um Ihre Resultate zu verifizieren. Geben
+		Sie die vom Simulator angezeigte Anzahl der Cache-Hits und die resultierende Hitrate an.
+		Begründen Sie gegebenenfalls den Unterschied zu Ihren Lösungen von c) und d). 
